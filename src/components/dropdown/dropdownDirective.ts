@@ -102,18 +102,23 @@ export class DropdownController {
             }
         });
         if (typeof this.$scope.ngModel !== 'undefined'  && this.$scope.ngModel != null) {
-            this.$scope.ngModel.$render = function(): void {
-                // find option with new value
-                let options: JQuery = self.$element.find('li');
-                for (let i: number = 0; i < options.length; i++) {
-                    let option: HTMLElement = options[i];
-                    let value: string = option.getAttribute('value');
-                    if (value === self.$scope.ngModel.$viewValue) {
-                         self.$scope.selectedTitle = angular.element(option).find('span').html();
-                         break;
-                    }
-                }
+            this.$scope.ngModel.$render = () => {
+                this.render();
             };
+        }
+    }
+    public render(): void {
+        if (typeof this.$scope.ngModel === 'undefined' || this.$scope.ngModel == null) {
+            return;
+        }
+        let options: JQuery = this.$element.find('li');
+        for (let i: number = 0; i < options.length; i++) {
+            let option: HTMLElement = options[i];
+            let value: string = option.getAttribute('value');
+            if (value === this.$scope.ngModel.$viewValue) {
+                  this.$scope.selectedTitle = angular.element(option).find('span').html();
+                  break;
+            }
         }
     }
 
@@ -151,7 +156,7 @@ export class DropdownDirective implements ng.IDirective {
     public template: string = '<div ng-click="dropdownClick" ' +
         'ng-class="{\'ms-Dropdown\' : true, \'is-open\': isOpen, \'is-disabled\': disabled}" tabindex="0">' +
         '<i class="ms-Dropdown-caretDown ms-Icon ms-Icon--caretDown"></i>' +
-        '<span class="ms-Dropdown-title">{{selectedTitle}}</span><ul class="ms-Dropdown-items"><ng-transclude></ng-transclude></ul></div>';
+        '<span class="ms-Dropdown-title">{{selectedTitle}}</span><ul class="ms-Dropdown-items"></ul></div>';
 
     public restrict: string = 'E';
     public transclude: boolean = true;
@@ -164,20 +169,19 @@ export class DropdownDirective implements ng.IDirective {
         const directive: ng.IDirectiveFactory = () => new DropdownDirective();
         return directive;
     }
-    public compile (templateElement: ng.IAugmentedJQuery,
-                    templateAttributes: ng.IAttributes,
-                    transclude: ng.ITranscludeFunction): ng.IDirectivePrePost {
-        return {
-            pre: this.preLink
-        };
-    }
 
-    private preLink(scope: IDropdownScope, instanceElement: ng.IAugmentedJQuery, instanceAttributes: ng.IAttributes, ctrls: {}): void {
+    public link(
+      scope: IDropdownScope, instanceElement: ng.IAugmentedJQuery, instanceAttributes: ng.IAttributes,
+      ctrls: {}, transclude: ng.ITranscludeFunction): void {
         let dropdownController: DropdownController = ctrls[0];
         let modelController: ng.INgModelController = ctrls[1];
+
         scope.ngModel = modelController;
         dropdownController.init();
         scope.disabled = 'disabled' in instanceAttributes;
+        transclude((clone: ng.IAugmentedJQuery) => {
+            instanceElement.find('ul').append(clone);
+        });
     }
 }
 

@@ -39,6 +39,24 @@
         expect(items.length).toBe(4);
         expect(items[2].innerText).toBe('Option 3');
     }));
+
+    it('should be able to set initial value', inject(($compile: Function, $rootScope: ng.IRootScopeService) => {
+        let $scope: any = $rootScope.$new();
+        $scope.options = [
+            { text: 'Option 1', value: 'Option1'},
+            { text: 'Option 2', value: 'Option2'},
+            { text: 'Option 3', value: 'Option3'},
+            { text: 'Option 4', value: 'Option4'}
+        ];
+        $scope.selectedValue = 'Option2';
+        let dropdown: JQuery = $compile('<uif-dropdown ng-model="selectedValue">' +
+            '<uif-dropdown-option ng-repeat="o in options" value="{{o.value}}">{{o.text}}</uif-dropdown-option></uif-dropdown>')($scope);
+
+        $scope.$digest();
+        dropdown = jQuery(dropdown[0]);
+        let title: JQuery = dropdown.find('span.ms-Dropdown-title');
+        expect(title.text()).toBe('Option 2', 'Displayed text should be Option 2');
+    }));
     it('should be able to click the dropdown', inject(($compile: Function, $rootScope: ng.IRootScopeService) => {
         let $scope: any = $rootScope.$new();
         let dropdown: JQuery = $compile('<uif-dropdown></uif-dropdown>')($scope);
